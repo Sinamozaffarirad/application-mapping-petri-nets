@@ -52,6 +52,14 @@ These results demonstrate that NoC performance depends on mapping quality: nearb
 
 The original course report documents the modeling stages, simulator traces, Petri-net figures, and the final architecture comparison: [Final project report (PDF)](docs/final-project-report.pdf).
 
+## Model excerpts
+
+The following report-derived Petri-net excerpts illustrate the resource-control mechanisms implemented in the final models.
+
+| Shared Bus mutual exclusion | NoC PE and link mutual exclusion |
+| --- | --- |
+| ![Bus model excerpt: one Bus_Mutex place controls communication access](assets/bus-mutex-model.png) | ![NoC model excerpt: PE and adjacent link mutex places protect an XY-routed communication path](assets/noc-link-mutex-model.png) |
+
 ## Repository layout
 
 ```text
@@ -65,6 +73,9 @@ NOC/
   PN_NOC_FINAL.m
 docs/
   final-project-report.pdf
+assets/
+  bus-mutex-model.png
+  noc-link-mutex-model.png
 ```
 
 ## Requirements
