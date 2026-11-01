@@ -58,7 +58,7 @@ The following report-derived Petri-net excerpts illustrate the resource-control 
 
 | Shared Bus mutual exclusion | NoC PE and link mutual exclusion |
 | --- | --- |
-| ![Bus model excerpt: one Bus_Mutex place controls communication access](assets/bus-mutex-model.png) | ![NoC model excerpt: PE and adjacent link mutex places protect an XY-routed communication path](assets/noc-link-mutex-model.png) |
+| ![Bus model excerpt: one Bus_Mutex place controls communication access](assets/petri_bus_mutex.png) | ![NoC model excerpt: PE and adjacent link mutex places protect an XY-routed communication path](assets/petri_xy_route_pe4.png) |
 
 ## Repository layout
 
