@@ -1,0 +1,23 @@
+# MATLAB-generated and editor files
+*.asv
+*.autosave
+*.m~
+*.mex*
+slprj/
+
+# Local course-submission materials and generated exports
+*.zip
+*.pdf
+*.docx
+*.jpg
+*.jpeg
+*.png
+
+# Local scratch and obsolete source kept outside the final repository
+PN_Initial.txt
+PN_initial.jpg
+PN_BUS_FINAL_old.m
+PN_BUS_DelayCommunication.jpg
+NOC/*.txt
+Bus/*.txt
+.dist/
