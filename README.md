@@ -1,66 +1,72 @@
-# Application Mapping for Bus and Network-on-Chip Architectures
+# Application Mapping on a Shared Bus vs a 4×4 Mesh NoC (Timed Petri Nets)
 
-An academic hardware/software co-design project that models application mapping on two system-on-chip communication architectures: a shared bus and a 4×4 mesh Network-on-Chip (NoC).
+My final project for the Hardware/Software Co-Design course at the University of Kashan.
+Sina Mozaffari Rad.
 
-The project uses timed Petri nets to make computation, communication, and resource contention explicit. It is intended as a compact, executable study of how mapping decisions affect end-to-end latency.
+The question I wanted to answer: if I take one application and map its tasks onto 16 processing elements (PEs),
+how much does the interconnect change the finish time? I compared a shared bus with a 4×4 mesh Network-on-Chip.
+I modelled both with timed Petri nets in MATLAB, because a Petri net shows computation, communication and
+resource conflicts in the same model, and you can see exactly where the time goes.
 
-## Summary
+## The model
 
-The work starts from a synchronous dataflow application graph and converts it to a timed Petri net with 16 computational transitions and 18 places. The same application and transition-to-PE assignment are evaluated on a shared-bus architecture and a 4×4 mesh NoC. Communication is modeled separately from computation so that the effect of placement is visible: the Bus model applies a fixed inter-PE cost, while the NoC model derives cost from Manhattan distance. The final models then add mutual exclusion for PEs and the shared bus or NoC links, respectively.
+The application is a synchronous-dataflow-style graph that I turned into a timed Petri net with 16 computation
+transitions and 18 places. Each transition is mapped to one of 16 PEs. Then I evaluated the same mapping on both
+architectures, adding detail in three steps:
 
-The comparison shows a practical mapping lesson rather than a one-size-fits-all architectural conclusion. With the documented assignment and a single input token, NoC communication delays produce a shorter completion time than the Bus model (33 versus 35 time units). Once PE and link contention are modeled, the current NoC placement completes in 37 time units, compared with 35 for the Bus. The report identifies placement locality and traffic level as the central factors: an NoC benefits when dependent tasks are near each other and its parallel links become more valuable under higher communication concurrency.
-
-## Project scope
-
-The application is represented by a synchronous dataflow-inspired graph with 16 computational transitions and 18 places. Each transition is assigned to one of 16 processing elements (PEs), then evaluated under two communication architectures.
-
-The models progress through three levels of fidelity:
-
-| Model | What it represents |
+| Model | What it adds |
 | --- | --- |
-| `PN_Initial` | Baseline timed Petri net containing computation delays only. |
-| `*_DelayCommunication` | Adds communication-delay transitions between dependent computations. |
-| `*_FINAL` | Adds mutual exclusion for shared PEs and communication resources. |
+| `PN_Initial` | Computation delays only, as a baseline. |
+| `*_DelayCommunication` | A delay transition for each communication between dependent tasks. |
+| `*_FINAL` | Mutual exclusion for the PEs and for the communication resources (contention). |
 
-### Bus model
+**Bus.** Sixteen logical PEs on one shared bus. Communication between two different PEs costs 2 time units;
+inside the same PE it costs nothing. In the final model, a `Bus_Mutex` place allows only one transfer on the bus
+at a time, and each PE has its own mutex place.
 
-- A shared-bus architecture with 16 logical PEs.
-- Inter-PE communication has a fixed delay of two time units; intra-PE communication has zero additional delay.
-- The final model uses PE mutex places and a `Bus_Mutex` place to prevent concurrent use of shared resources.
+**NoC.** A 4×4 mesh with XY routing. The communication delay is the Manhattan distance between the source and
+destination PE. In the final model a transfer must reserve both PEs and every link on its XY path through mutex
+places, so two transfers that need the same link have to wait for each other.
 
-### NoC model
-
-- A 4×4 mesh with XY-style routing.
-- Inter-PE delay is derived from Manhattan distance between source and destination PEs.
-- The final model reserves both PEs and the links on a communication path through mutex places, exposing the impact of placement and contention.
-
-## Results from the submitted scenario
-
-The source models implement the scenario documented for the project: a single input token and the configured transition-to-PE mapping.
-
-| Scenario | Completion time (time units) |
-| --- | ---: |
-| Computation-only baseline | 31 |
-| Bus with communication delays | 35 |
-| NoC with communication delays | 33 |
-| Bus with PE and bus contention | 35 |
-| NoC with PE and link contention | 37 |
-
-These results demonstrate that NoC performance depends on mapping quality: nearby communicating tasks can reduce delay, while a placement with longer routes and link contention can be slower than a shared bus. The model is therefore useful for exploring mapping alternatives, not for claiming a universal winner.
-
-## Final report
-
-The original course report documents the modeling stages, simulator traces, Petri-net figures, and the final architecture comparison: [Final project report (PDF)](docs/final-project-report.pdf).
-
-## Model excerpts
-
-The following report-derived Petri-net excerpts illustrate the resource-control mechanisms implemented in the final models.
-
-| Shared Bus mutual exclusion | NoC PE and link mutual exclusion |
+| Bus: one mutex for the whole bus | NoC: mutexes for the PEs and each link on the XY path |
 | --- | --- |
 | ![Bus model excerpt: one Bus_Mutex place controls communication access](assets/petri_bus_mutex.png) | ![NoC model excerpt: PE and adjacent link mutex places protect an XY-routed communication path](assets/petri_xy_route_pe4.png) |
 
-## Repository layout
+## Results
+
+One input token, with the transition-to-PE mapping from the report:
+
+| Scenario | Finish time (time units) |
+| --- | ---: |
+| Computation only | 31 |
+| Bus + communication delay | 35 |
+| NoC + communication delay | 33 |
+| Bus + PE and bus contention | 35 |
+| NoC + PE and link contention | 37 |
+
+When I added only the communication delays, the NoC was faster (33 vs 35), because many dependent tasks were
+close to each other in the mesh. But once I modelled contention, my NoC mapping became slower than the bus
+(37 vs 35). Some of my XY paths shared links, and those transfers had to wait.
+
+So the result was not "NoC is better than a bus". With this mapping and only one token there is not much
+parallel traffic, and the bus does not get overloaded. The NoC only wins when communicating tasks are placed
+close together and when there is enough parallel communication to use its many links. For me, the main lesson
+was that the mapping matters as much as the architecture.
+
+## What I would try next
+
+- Search for a better mapping automatically (for example simulated annealing on total hop count), instead of
+  using one hand-made mapping.
+- Run several tokens in a pipeline. I expect the NoC to pull ahead once there is more parallel traffic, but I
+  have not tested it.
+- Model router and buffer delay, not only link distance.
+
+## Report
+
+The full course report, with the modelling steps, simulator traces and Petri net figures:
+[docs/final-project-report.pdf](docs/final-project-report.pdf).
+
+## Files
 
 ```text
 Bus/
@@ -74,34 +80,25 @@ NOC/
 docs/
   final-project-report.pdf
 assets/
-  bus-mutex-model.png
-  noc-link-mutex-model.png
+  petri_bus_mutex.png
+  petri_xy_route_pe4.png
 ```
 
-## Requirements
+## Running it
 
-- MATLAB
-- The course Petri-net toolbox providing `Init_PN`, `New_Place`, `New_Transition`, `Weighted_Arc_P2T`, and `Weighted_Arc_T2P` (referred to in the project report as `KU_PN_TOOL`)
+You need MATLAB and the course Petri net toolbox (`KU_PN_TOOL`), which provides `Init_PN`, `New_Place`,
+`New_Transition`, `Weighted_Arc_P2T` and `Weighted_Arc_T2P`. The toolbox is from the course, not my code,
+so it is not included here.
 
-The toolbox is not included because it is a course dependency rather than project-authored source code.
-
-## Running a model
-
-1. Add the toolbox and either `Bus` or `NOC` directory to the MATLAB path.
-2. Run a model function, for example:
+1. Add the toolbox and **one** of the `Bus` or `NOC` folders to the MATLAB path. Both folders have a function
+   called `PN_Initial`, so adding both at once causes a name clash.
+2. Run a model, for example:
 
    ```matlab
    model = PN_BUS_FINAL();
    ```
 
-3. Execute or visualize the returned Petri-net model using the toolbox workflow.
+3. Simulate or plot the returned model with the toolbox.
 
-The selected folder matters because both architectures include a baseline function named `PN_Initial`.
-
-## Mapping experiments
-
-The mapping is deliberately parameterized in each architecture model. To explore another placement, edit the transition-to-PE assignments near the top of the relevant `.m` file and rerun the model. The communication paths, delays, and resource constraints are then generated from that mapping.
-
-## Academic context
-
-Final project for the Hardware/Software Co-Design course. The repository contains the final MATLAB implementation and the original final report. Generated submission archives, intermediate drafts, and unrelated local exports are intentionally excluded.
+To try a different mapping, change the transition-to-PE assignments at the top of the `.m` file. The
+communication paths, delays and mutexes are generated from the mapping.
