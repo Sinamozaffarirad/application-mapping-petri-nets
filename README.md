@@ -14,11 +14,7 @@ The application is a synchronous-dataflow-style graph that I turned into a timed
 transitions and 18 places. Each transition is mapped to one of 16 PEs. Then I evaluated the same mapping on both
 architectures, adding detail in three steps:
 
-| Model | What it adds |
-| --- | --- |
-| `PN_Initial` | Computation delays only, as a baseline. |
-| `*_DelayCommunication` | A delay transition for each communication between dependent tasks. |
-| `*_FINAL` | Mutual exclusion for the PEs and for the communication resources (contention). |
+| Mo
 
 **Bus.** Sixteen logical PEs on one shared bus. Communication between two different PEs costs 2 time units;
 inside the same PE it costs nothing. In the final model, a `Bus_Mutex` place allows only one transfer on the bus
