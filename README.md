@@ -49,13 +49,6 @@ parallel traffic, and the bus does not get overloaded. The NoC only wins when co
 close together and when there is enough parallel communication to use its many links. For me, the main lesson
 was that the mapping matters as much as the architecture.
 
-## What I would try next
-
-- Search for a better mapping automatically (for example simulated annealing on total hop count), instead of
-  using one hand-made mapping.
-- Run several tokens in a pipeline. I expect the NoC to pull ahead once there is more parallel traffic, but I
-  have not tested it.
-- Model router and buffer delay, not only link distance.
 
 ## Report
 
